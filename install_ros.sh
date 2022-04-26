@@ -18,7 +18,7 @@ install_ros() {
 }
 setup_env() {
     nmcli -t -f DEVICE,TYPE device | cut -f1 -d":"
-    echo "Enter your device type"
+    echo "Enter your device type to setup IP in bashrc"
     read device_type
     echo "source /opt/ros/$1/setup.bash" >> ~/.bashrc
     echo "value="$(ip a s $device_type | egrep -o 'inet [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -d' ' -f2)"" >> ~/.bashrc
@@ -36,7 +36,6 @@ ros_deps() {
 script() {
 while :
 	do 
-		echo $1 $2
 	    echo "Please select operation to perform"
 	    echo "1. Remove already installed ROS"
 	    echo "2. Install ROS for $1"
@@ -74,7 +73,7 @@ case  $1  in
     "neotic")
         if [ "$Code" = "focal" ]
         then
-            script neotic python3
+			script neotic python3
             echo "REBOOT your system"
         else
             echo "Ubuntu $Code does not support ROS Noetic"
