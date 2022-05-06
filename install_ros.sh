@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 Code=$(cat /etc/lsb-release | grep -oP "^DISTRIB_CODENAME=\K.*")
 remove_ros() {
     sudo dpkg --configure -a
@@ -17,14 +17,20 @@ install_ros() {
     sudo apt install ros-$1-desktop-full -y
 }
 setup_env() {
-    nmcli -t -f DEVICE,TYPE device | cut -f1 -d":"
-    echo "Enter your device type to setup IP in bashrc"
-    read device_type
+    declare -a my_arra
+    my_arra=( $(nmcli -t -f DEVICE,TYPE device) )
+    printf "%s%s\n"
+    for k in "${!my_arra[@]}"; do 
+        printf "%s%s\n" "$k. " "${my_arra[$k]}"
+    done
+    echo "Select your device type to setup IP in bashrc"
+    read inp
+    device=${my_arra[$inp]} | cut -f1 -d":"
+    echo "value="'$'"(ip a s $device_type | egrep -o 'inet [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -d' ' -f2)" >> ~/.bashrc
+    echo "export ROS_MASTER_URI=http://"'$'"value:11311" >> ~/.bashrc
+    echo "export ROS_HOSTNAME="'$'"value" >> ~/.bashrc
+    echo "export ROS_IP="'$'"value" >> ~/.bashrc
     echo "source /opt/ros/$1/setup.bash" >> ~/.bashrc
-    echo "value="$(ip a s $device_type | egrep -o 'inet [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -d' ' -f2)"" >> ~/.bashrc
-    echo "export ROS_MASTER_URI=http://$value:11311" >> ~/.bashrc
-    echo "export ROS_HOSTNAME=$value" >> ~/.bashrc
-    echo "export ROS_IP=$value" >> ~/.bashrc
     . ~/.bashrc
 }
 ros_deps() {
@@ -48,12 +54,14 @@ while :
 			;;
 			"2")
 				install_ros $1
+                ros_deps $2
 				;;
 			"3")
 				setup_env $1
-				ros_deps $2
-				sudo apt-get autoremove -y
-				echo "REBOOT your system"
+				# sudo apt-get autoremove -y
+                printf "%s%s\n"
+				echo "---REBOOT your system---"
+                printf "%s%s\n"
 			;;
 			"4")
 				break
@@ -81,7 +89,8 @@ case  $1  in
     ;;            
     *)
     echo "Bad argument!"
-    echo "########## Usage: sh install_ros.sh argument1 ##########"
+    echo "########## Usage: bash install_ros.sh melodic ##########"
+    echo "#--------- argument1 is distro of ros (enter in small caps). Example: melodic -----------#"
     echo "########## This script can not install for $1 ##########"
     ;;            
 esac 
